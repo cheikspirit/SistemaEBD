@@ -228,22 +228,50 @@ const Dashboard = ({
     if (!lastSunday) return { percentage: 0, present: 0, total: 0, trend: 0, date: null };
 
     const lastSundayRecords = recentAttendance.filter(a => a.date === lastSunday);
-    const present = lastSundayRecords.filter(a => a.present).length;
-    const total = lastSundayRecords.length;
-    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+    const lastTheme = lastSundayRecords[0]?.lesson_theme;
+
+    // Calculate totals including the teacher of each session
+    const sessions = Array.from(lastSundayRecords.reduce((map, record) => {
+      const classId = record.class_id;
+      if (!map.has(classId)) map.set(classId, record.teacher_name);
+      return map;
+    }, new Map<string, string | null>())) as [string, string | null][];
+
+    const studentsPresent = lastSundayRecords.filter(a => a.present).length;
+    const teachersPresent = sessions.filter(s => !!s[1]).length;
+    const totalPresent = studentsPresent + teachersPresent;
+    
+    const studentsTotal = lastSundayRecords.length;
+    const teachersTotal = sessions.length;
+    const grandTotal = studentsTotal + teachersTotal;
+    
+    const percentage = grandTotal > 0 ? Math.round((totalPresent / grandTotal) * 100) : 0;
 
     // Calculate trend (compare with previous Sunday)
     let trend = 0;
     if (dates.length > 1) {
       const prevSunday = dates[1];
       const prevSundayRecords = recentAttendance.filter(a => a.date === prevSunday);
-      const prevPresent = prevSundayRecords.filter(a => a.present).length;
-      const prevTotal = prevSundayRecords.length;
-      const prevPercentage = prevTotal > 0 ? Math.round((prevPresent / prevTotal) * 100) : 0;
+      
+      const prevSessions = Array.from(prevSundayRecords.reduce((map, record) => {
+        const classId = record.class_id;
+        if (!map.has(classId)) map.set(classId, record.teacher_name);
+        return map;
+      }, new Map<string, string | null>())) as [string, string | null][];
+
+      const prevStudentsPresent = prevSundayRecords.filter(a => a.present).length;
+      const prevTeachersPresent = prevSessions.filter(s => !!s[1]).length;
+      const prevTotalPresent = prevStudentsPresent + prevTeachersPresent;
+      
+      const prevStudentsTotal = prevSundayRecords.length;
+      const prevTeachersTotal = prevSessions.length;
+      const prevGrandTotal = prevStudentsTotal + prevTeachersTotal;
+      
+      const prevPercentage = prevGrandTotal > 0 ? Math.round((prevTotalPresent / prevGrandTotal) * 100) : 0;
       trend = percentage - prevPercentage;
     }
 
-    return { percentage, present, total, trend, date: lastSunday };
+    return { percentage, present: totalPresent, total: grandTotal, trend, date: lastSunday, theme: lastTheme };
   }, [recentAttendance]);
 
   const chartData = React.useMemo(() => {
@@ -254,9 +282,17 @@ const Dashboard = ({
     const dates = [...new Set(recentAttendance.map(a => a.date))].sort((a, b) => b.localeCompare(a)).slice(0, 4).reverse();
     return dates.map(date => {
       const records = recentAttendance.filter(a => a.date === date);
-      const present = records.filter(a => a.present).length;
-      const total = records.length;
-      return total > 0 ? Math.round((present / total) * 100) : 0;
+      const sessions = new Set(records.map(r => r.class_id)).size;
+      const studentsPresent = records.filter(a => a.present).length;
+      const teachersPresent = (Array.from(records.reduce((map, r) => {
+        if (!map.has(r.class_id)) map.set(r.class_id, r.teacher_name);
+        return map;
+      }, new Map<string, string | null>())) as [string, string | null][]).filter(s => !!s[1]).length;
+      
+      const totalPresent = studentsPresent + teachersPresent;
+      const totalExpected = records.length + sessions;
+      
+      return totalExpected > 0 ? Math.round((totalPresent / totalExpected) * 100) : 0;
     });
   }, [recentAttendance]);
 
@@ -333,10 +369,19 @@ const Dashboard = ({
         </div>
         <div className="flex items-end gap-2">
           <p className="text-2xl font-bold">{attendanceStats.percentage}%</p>
-          <p className="text-slate-400 text-[10px] mb-1.5">
-            {attendanceStats.present} de {attendanceStats.total} presentes
-            {attendanceStats.date && ` (${parseLocalDate(attendanceStats.date)?.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })})`}
-          </p>
+          <div className="flex flex-col mb-1">
+            <p className="text-slate-400 text-[9px] leading-tight">
+              {attendanceStats.present} presentes (incl. professores)
+            </p>
+            {attendanceStats.theme && (
+              <p className="text-primary text-[9px] leading-tight font-bold truncate max-w-[150px]">
+                Tema: {attendanceStats.theme}
+              </p>
+            )}
+            <p className="text-slate-400 text-[9px] leading-tight">
+              {attendanceStats.date && `em ${parseLocalDate(attendanceStats.date)?.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -767,6 +812,8 @@ const AttendanceRollCall = ({
 }) => {
   const [selectedClassId, setSelectedClassId] = React.useState<string>(classes[0]?.id || '');
   const [selectedTeacher, setSelectedTeacher] = React.useState('');
+  const [lessonTheme, setLessonTheme] = React.useState('');
+  const [biblicalReference, setBiblicalReference] = React.useState('');
   const [attendance, setAttendance] = React.useState<Record<string, { present: boolean; bible: boolean }>>({});
   const [isSaving, setIsSaving] = React.useState(false);
   const [alreadyDoneToday, setAlreadyDoneToday] = React.useState(false);
@@ -842,6 +889,11 @@ const AttendanceRollCall = ({
       return;
     }
 
+    if (!lessonTheme.trim()) {
+      alert('Por favor, informe o tema da aula.');
+      return;
+    }
+
     // Filter attendance to only save present visitors and all regular students
     const recordsToSave = Object.entries(attendance).filter(([studentId, data]) => {
       const student = students.find(s => s.id === studentId);
@@ -854,8 +906,11 @@ const AttendanceRollCall = ({
       return data.present;
     });
 
+    const studentsPresent = recordsToSave.filter(([_, data]) => data.present).length;
+    const totalPresent = studentsPresent + (selectedTeacher ? 1 : 0);
+
     if (isDemoMode) {
-      alert(`Chamada de ${todayStr} finalizada com sucesso!\nProfessor: ${selectedTeacher}\nPresentes: ${recordsToSave.filter(([_, data]) => data.present).length}\n\nNota: No modo real, salvar novamente a mesma turma no mesmo dia irá atualizar os registros existentes.`);
+      alert(`Chamada de ${todayStr} finalizada com sucesso!\nTema: ${lessonTheme}\nProfessor: ${selectedTeacher}\nTotal de Frequência: ${totalPresent} (${studentsPresent} alunos + 1 professor)\n\nNota: No modo real, salvar novamente a mesma turma no mesmo dia irá atualizar os registros existentes.`);
       onStartTimer();
       onNavigate('dashboard');
       return;
@@ -870,7 +925,9 @@ const AttendanceRollCall = ({
         date: today,
         present: data.present,
         has_bible: data.bible,
-        teacher_name: selectedTeacher
+        teacher_name: selectedTeacher,
+        lesson_theme: lessonTheme.trim(),
+        biblical_reference: biblicalReference.trim() || null
       }));
 
       const { error } = await supabase.from('attendance').upsert(records);
@@ -892,6 +949,9 @@ const AttendanceRollCall = ({
   const regularStudents = students.filter(s => s.class_id === selectedClassId && (s.type === 'REGULAR' || !s.type));
   const availableVisitors = students.filter(s => s.class_id === selectedClassId && s.type === 'VISITOR' && !attendance[s.id]);
   const activeVisitors = students.filter(s => s.class_id === selectedClassId && s.type === 'VISITOR' && attendance[s.id]);
+
+  const studentsPresentCount = Object.values(attendance).filter(a => a.present).length;
+  const totalFrequencyCount = studentsPresentCount + (selectedTeacher ? 1 : 0);
 
   return (
     <motion.div 
@@ -949,6 +1009,27 @@ const AttendanceRollCall = ({
           <p className="text-[10px] text-slate-400 px-1 italic">
             * Cadastre múltiplos professores na edição da turma separando por vírgula.
           </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase">Tema da Aula <span className="text-red-500">*</span></label>
+            <input 
+              value={lessonTheme}
+              onChange={(e) => setLessonTheme(e.target.value)}
+              placeholder="Ex: A Parábola do Semeador"
+              className="w-full bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-sm font-bold focus:ring-primary focus:border-primary"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase">Referência Bíblica (Opcional)</label>
+            <input 
+              value={biblicalReference}
+              onChange={(e) => setBiblicalReference(e.target.value)}
+              placeholder="Ex: Mateus 13:1-23"
+              className="w-full bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-sm font-bold focus:ring-primary focus:border-primary"
+            />
+          </div>
         </div>
       </div>
 
@@ -1134,7 +1215,13 @@ const AttendanceRollCall = ({
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-24 left-0 right-0 p-4 max-w-md mx-auto">
+      <div className="fixed bottom-24 left-0 right-0 p-4 max-w-md mx-auto space-y-2">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-3 rounded-xl border border-primary/20 flex justify-between items-center shadow-lg">
+          <p className="text-[10px] font-bold text-slate-500 uppercase">Resumo da Chamada</p>
+          <p className="text-xs font-black text-primary">
+            {totalFrequencyCount} Presentes Total
+          </p>
+        </div>
         <button 
           onClick={handleSave}
           disabled={isSaving || (regularStudents.length === 0 && activeVisitors.length === 0)}
@@ -2282,7 +2369,9 @@ const ReportsView = ({
           Tipo: s.type === 'VISITOR' ? 'Visitante' : 'Regular',
           Turma: classes.find(c => c.id === s.class_id)?.name || 'N/A',
           Presenca: Math.random() > 0.2 ? 'Presente' : 'Faltou',
-          Biblia: Math.random() > 0.3 ? 'Sim' : 'Não'
+          Biblia: Math.random() > 0.3 ? 'Sim' : 'Não',
+          Tema: 'Tema Exemplo',
+          Referencia: 'Referência Exemplo'
         }));
       } else {
         const { data: attendanceData, error } = await supabase
@@ -2293,6 +2382,8 @@ const ReportsView = ({
             present,
             has_bible,
             teacher_name,
+            lesson_theme,
+            biblical_reference,
             students (name, type),
             classes (name)
           `)
@@ -2319,7 +2410,9 @@ const ReportsView = ({
           Turma: record.classes?.name || record.class_id || 'N/A',
           Presenca: record.present ? 'Presente' : 'Faltou',
           Biblia: record.has_bible ? 'Sim' : 'Não',
-          Professor: record.teacher_name || 'N/A'
+          Professor: record.teacher_name || 'N/A',
+          Tema: record.lesson_theme || 'N/A',
+          Referencia: record.biblical_reference || 'N/A'
         }));
       }
       downloadCSV(data, 'lista_presenca');
