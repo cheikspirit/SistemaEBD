@@ -24,4 +24,7 @@ export const getSupabase = () => {
 };
 
 // For convenience, but use getSupabase() to be safe
-export const supabase = getSupabase();
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+);
