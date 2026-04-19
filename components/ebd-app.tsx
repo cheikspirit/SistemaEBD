@@ -327,10 +327,10 @@ const Dashboard = ({
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-amber-900 dark:text-amber-100">Aniversariantes da Semana!</p>
-          <p className="text-xs text-amber-700 dark:text-amber-300">
+          <p className="text-xs text-amber-700 dark:text-amber-300 italic">
             {birthdaysThisWeek.length === 1 
               ? `${birthdaysThisWeek[0].name} faz aniversário esta semana.`
-              : `${birthdaysThisWeek.length} alunos fazem aniversário esta semana.`}
+              : `Parabéns para: ${birthdaysThisWeek.map(s => s.name).join(', ').replace(/, ([^,]*)$/, ' e $1')}.`}
           </p>
         </div>
       </motion.div>
