@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build && mkdir -p dist && touch dist/index.html",
+    "build": "next build && rm -rf dist && cp -r out dist",
     "start": "next start -p 3000",
     "lint": "next lint"
   },
