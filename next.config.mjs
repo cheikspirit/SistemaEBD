@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
+  transpilePackages: ['motion', 'framer-motion'],
   images: {
     unoptimized: true,
     remotePatterns: [
