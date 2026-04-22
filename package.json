@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build && rm -rf dist && cp -r out dist",
+    "build": "next build && (rm -rf dist && [ -d out ] && cp -r out dist || echo 'Build artifact directory out not found, skipping copy')",
     "start": "next start -p 3000",
     "lint": "next lint"
   },
