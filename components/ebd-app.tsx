@@ -149,9 +149,9 @@ const MOCK_CLASSES: Class[] = [
 ];
 
 const MOCK_STUDENTS: Student[] = [
-  { id: '1', name: 'Ana Beatriz Oliveira', class_id: '3', status: 'active', avatar_url: 'https://picsum.photos/seed/p1/100/100', points: 150, birth_date: '2015-03-05', created_at: '2026-02-05T10:00:00Z' } as any,
-  { id: '2', name: 'Lucas Mendes', class_id: '3', status: 'active', avatar_url: 'https://picsum.photos/seed/p2/100/100', points: 120, birth_date: '2015-03-10', created_at: '2026-01-10T10:00:00Z' } as any,
-  { id: '3', name: 'Mariana Costa', class_id: '4', status: 'inactive', avatar_url: 'https://picsum.photos/seed/p3/100/100', points: 45, birth_date: '2018-06-20', created_at: '2025-12-15T10:00:00Z' } as any,
+  { id: '1', name: 'Ana Beatriz Oliveira', class_id: '3', status: 'active', avatar_url: 'https://picsum.photos/seed/p1/100/100', points: 150, birth_date: '2015-04-22', created_at: '2026-02-05T10:00:00Z' } as any,
+  { id: '2', name: 'Lucas Mendes', class_id: '3', status: 'active', avatar_url: 'https://picsum.photos/seed/p2/100/100', points: 120, birth_date: '2015-04-24', created_at: '2026-01-10T10:00:00Z' } as any,
+  { id: '3', name: 'Mariana Costa', class_id: '4', status: 'inactive', avatar_url: 'https://picsum.photos/seed/p3/100/100', points: 45, birth_date: '2018-04-26', created_at: '2025-12-15T10:00:00Z' } as any,
   { id: '4', name: 'Gabriel Souza', class_id: '1', status: 'active', avatar_url: 'https://picsum.photos/seed/p4/100/100', points: 210, birth_date: '1990-03-02', created_at: '2025-11-20T10:00:00Z' } as any,
   { id: '5', name: 'Carla Peixoto', class_id: '1', status: 'active', avatar_url: 'https://picsum.photos/seed/p5/100/100', points: 180, birth_date: '1992-11-15', created_at: '2025-10-25T10:00:00Z' } as any,
   { id: '6', name: 'Ricardo Silva', class_id: '1', status: 'active', avatar_url: 'https://picsum.photos/seed/p6/100/100', points: 95, birth_date: '1988-08-25', created_at: '2026-03-30T10:00:00Z' } as any,
@@ -329,8 +329,8 @@ const Dashboard = ({
           <p className="text-sm font-bold text-amber-900 dark:text-amber-100">Aniversariantes da Semana!</p>
           <p className="text-xs text-amber-700 dark:text-amber-300 italic">
             {birthdaysThisWeek.length === 1 
-              ? `${birthdaysThisWeek[0].name} faz aniversário esta semana.`
-              : `Parabéns para: ${birthdaysThisWeek.map(s => s.name).join(', ').replace(/, ([^,]*)$/, ' e $1')}.`}
+              ? `${birthdaysThisWeek[0].name} (${birthdaysThisWeek[0].birth_date?.split('-').slice(1).reverse().join('/')}) faz aniversário esta semana.`
+              : `Parabéns para: ${birthdaysThisWeek.map(s => `${s.name} (${s.birth_date?.split('-').slice(1).reverse().join('/')})`).join(', ').replace(/, ([^,]*)$/, ' e $1')}.`}
           </p>
         </div>
       </motion.div>
