@@ -78,6 +78,7 @@ interface Teacher {
   email?: string;
   phone?: string;
   avatar_url?: string;
+  student_id?: string;
 }
 
 interface Class {
@@ -97,6 +98,7 @@ interface AttendanceRecord {
   date: string;
   present: boolean;
   has_bible: boolean;
+  is_serving?: boolean;
 }
 
 // --- Mock Data Fallback ---
@@ -237,11 +239,11 @@ const Dashboard = ({
       return map;
     }, new Map<string, string | null>())) as [string, string | null][];
 
-    const studentsPresent = lastSundayRecords.filter(a => a.present).length;
+    const studentsPresent = lastSundayRecords.filter(a => a.present && !a.is_serving).length;
     const teachersPresent = sessions.filter(s => !!s[1]).length;
     const totalPresent = studentsPresent + teachersPresent;
     
-    const studentsTotal = lastSundayRecords.length;
+    const studentsTotal = lastSundayRecords.filter(a => !a.is_serving).length;
     const teachersTotal = sessions.length;
     const grandTotal = studentsTotal + teachersTotal;
     
@@ -283,14 +285,14 @@ const Dashboard = ({
     return dates.map(date => {
       const records = recentAttendance.filter(a => a.date === date);
       const sessions = new Set(records.map(r => r.class_id)).size;
-      const studentsPresent = records.filter(a => a.present).length;
+      const studentsPresent = records.filter(a => a.present && !a.is_serving).length;
       const teachersPresent = (Array.from(records.reduce((map, r) => {
         if (!map.has(r.class_id)) map.set(r.class_id, r.teacher_name);
         return map;
       }, new Map<string, string | null>())) as [string, string | null][]).filter(s => !!s[1]).length;
       
       const totalPresent = studentsPresent + teachersPresent;
-      const totalExpected = records.length + sessions;
+      const totalExpected = records.filter(a => !a.is_serving).length + sessions;
       
       return totalExpected > 0 ? Math.round((totalPresent / totalExpected) * 100) : 0;
     });
@@ -799,6 +801,7 @@ const AttendanceRollCall = ({
   onNavigate, 
   students, 
   classes,
+  teachers = [],
   isDemoMode,
   onStartTimer,
   onSuccess
@@ -806,6 +809,7 @@ const AttendanceRollCall = ({
   onNavigate: (view: View) => void;
   students: Student[];
   classes: Class[];
+  teachers?: Teacher[];
   isDemoMode: boolean;
   onStartTimer: () => void;
   onSuccess?: () => void;
@@ -919,7 +923,7 @@ const AttendanceRollCall = ({
     setIsSaving(true);
     try {
       const today = new Date().toLocaleDateString('sv-SE');
-      const records = recordsToSave.map(([studentId, data]) => ({
+      const records: any[] = recordsToSave.map(([studentId, data]) => ({
         student_id: studentId,
         class_id: selectedClassId,
         date: today,
@@ -927,8 +931,38 @@ const AttendanceRollCall = ({
         has_bible: data.bible,
         teacher_name: selectedTeacher,
         lesson_theme: lessonTheme.trim(),
-        biblical_reference: biblicalReference.trim() || null
+        biblical_reference: biblicalReference.trim() || null,
+        is_serving: false
       }));
+
+      // Auto-mark teacher presence as "Serving" in their original class
+      const teacherData = teachers.find(t => t.name === selectedTeacher);
+      if (teacherData?.student_id) {
+        const studentInfo = students.find(s => s.id === teacherData.student_id);
+        if (studentInfo) {
+          // Check if the student is already in the records for this class and date
+          // (They shouldn't be if it's a different class, but just in case)
+          const alreadyInList = records.find(r => r.student_id === studentInfo.id);
+          
+          if (!alreadyInList) {
+            records.push({
+              student_id: studentInfo.id,
+              class_id: studentInfo.class_id, // Original class
+              date: today,
+              present: true,
+              has_bible: true,
+              is_serving: true,
+              teacher_name: selectedTeacher,
+              lesson_theme: lessonTheme.trim(),
+              biblical_reference: biblicalReference.trim() || null
+            });
+          } else {
+            // Already in this class, just mark as serving
+            alreadyInList.is_serving = true;
+            alreadyInList.present = true;
+          }
+        }
+      }
 
       const { error } = await supabase.from('attendance').upsert(records);
       
@@ -2147,16 +2181,19 @@ const TeacherForm = ({
   onSuccess, 
   onCancel,
   initialData,
+  students = [],
   isDemoMode 
 }: { 
   onSuccess: (data: Teacher) => void; 
   onCancel: () => void;
   initialData?: Teacher | null;
+  students?: Student[];
   isDemoMode: boolean;
 }) => {
   const [name, setName] = React.useState(initialData?.name || '');
   const [email, setEmail] = React.useState(initialData?.email || '');
   const [phone, setPhone] = React.useState(initialData?.phone || '');
+  const [studentId, setStudentId] = React.useState(initialData?.student_id || '');
   const [isSaving, setIsSaving] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -2166,6 +2203,7 @@ const TeacherForm = ({
       name,
       email,
       phone,
+      student_id: studentId || undefined,
       avatar_url: initialData?.avatar_url
     };
 
@@ -2177,14 +2215,15 @@ const TeacherForm = ({
 
     setIsSaving(true);
     try {
+      const payload = { name, email, phone, student_id: studentId || null };
       if (initialData) {
         const { error } = await supabase
           .from('teachers')
-          .update({ name, email, phone })
+          .update(payload)
           .eq('id', initialData.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('teachers').insert({ name, email, phone });
+        const { error } = await supabase.from('teachers').insert(payload);
         if (error) throw error;
       }
       onSuccess(teacherData);
@@ -2205,6 +2244,31 @@ const TeacherForm = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-2xl border border-amber-100 dark:border-amber-800/30 mb-4">
+          <div className="flex gap-3">
+            <ShieldCheck className="size-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-amber-900 dark:text-amber-100 uppercase">Vincular a Aluno</p>
+              <p className="text-[10px] text-amber-700 dark:text-amber-400">
+                Se este professor também for aluno em outra classe, vincule-o aqui para que sua presença seja marcada automaticamente como <b>&quot;Servindo&quot;</b> na classe de origem.
+              </p>
+            </div>
+          </div>
+          <select
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            className="mt-3 w-full bg-white dark:bg-slate-900 p-3 rounded-xl border border-amber-200 dark:border-amber-800/50 text-sm focus:ring-amber-500"
+          >
+            <option value="">Não vincular (Apenas Professor)</option>
+            {students
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))
+            }
+          </select>
+        </div>
+
         <div className="space-y-2">
           <label className="text-xs font-bold text-slate-500 uppercase">Nome Completo</label>
           <input 
@@ -2368,7 +2432,7 @@ const ReportsView = ({
           Aluno: s.name,
           Tipo: s.type === 'VISITOR' ? 'Visitante' : 'Regular',
           Turma: classes.find(c => c.id === s.class_id)?.name || 'N/A',
-          Presenca: Math.random() > 0.2 ? 'Presente' : 'Faltou',
+          Presenca: Math.random() > 0.9 ? 'Servindo' : (Math.random() > 0.2 ? 'Presente' : 'Faltou'),
           Biblia: Math.random() > 0.3 ? 'Sim' : 'Não',
           Tema: 'Tema Exemplo',
           Referencia: 'Referência Exemplo'
@@ -2381,6 +2445,7 @@ const ReportsView = ({
             student_id,
             present,
             has_bible,
+            is_serving,
             teacher_name,
             lesson_theme,
             biblical_reference,
@@ -2408,7 +2473,7 @@ const ReportsView = ({
           Aluno: record.students?.name || record.student_id || 'N/A',
           Tipo: record.students?.type === 'VISITOR' ? 'Visitante' : 'Regular',
           Turma: record.classes?.name || record.class_id || 'N/A',
-          Presenca: record.present ? 'Presente' : 'Faltou',
+          Presenca: record.is_serving ? 'Servindo' : (record.present ? 'Presente' : 'Faltou'),
           Biblia: record.has_bible ? 'Sim' : 'Não',
           Professor: record.teacher_name || 'N/A',
           Tema: record.lesson_theme || 'N/A',
@@ -3173,9 +3238,9 @@ function EBDAppContent() {
   });
   const [churchLogo, setChurchLogo] = React.useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('ebd_church_logo') || '/logo.png';
+      return localStorage.getItem('ebd_church_logo') || 'https://picsum.photos/seed/ebd-digital/512/512';
     }
-    return '/logo.png';
+    return 'https://picsum.photos/seed/ebd-digital/512/512';
   });
   const [logoError, setLogoError] = React.useState(false);
 
@@ -3748,6 +3813,7 @@ function EBDAppContent() {
           onNavigate={setCurrentView} 
           students={students} 
           classes={classes} 
+          teachers={teachers}
           isDemoMode={isDemoMode}
           onStartTimer={startClassTimer}
           onSuccess={fetchData}
@@ -3866,6 +3932,7 @@ function EBDAppContent() {
       case 'add-teacher': return (
         <TeacherForm 
           isDemoMode={isDemoMode}
+          students={students}
           onSuccess={(newTeacher) => { 
             setTeachers(prev => {
               const exists = prev.find(t => t.id === newTeacher.id);
@@ -3882,6 +3949,7 @@ function EBDAppContent() {
         <TeacherForm 
           isDemoMode={isDemoMode}
           initialData={editingTeacher}
+          students={students}
           onSuccess={(updatedTeacher) => { 
             setTeachers(prev => prev.map(t => t.id === updatedTeacher.id ? updatedTeacher : t));
             setEditingTeacher(null);

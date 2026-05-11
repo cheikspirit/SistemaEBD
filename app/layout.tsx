@@ -13,6 +13,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="EBD Digital" />
+        <meta name="theme-color" content="#2563eb" />
+      </head>
       <body>
         {children}
       </body>
