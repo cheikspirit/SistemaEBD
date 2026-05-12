@@ -4,7 +4,7 @@ Este arquivo registra a configuração estável que resolveu os problemas de bui
 
 ## 1. Configuração de Build (Next.js 15.1.0+)
 Para que o build ocorra sem erros de `PageNotFoundError: /_document` ou `SWC bindings`:
-- **Versão do Next.js**: `^15.1.0` (estável)
+- **Versão do Next.js**: `15.1.7` (versão estável e segura contra vulnerabilidades na Vercel).
 - **Output**: O modo standard (sem `export`) é mantido.
 - **SSR**: O componente principal do app deve ser importado via `next/dynamic` com `ssr: false` no `app/page.tsx` para evitar erros de renderização no servidor relacionados a bibliotecas de animação e window APIs.
 - **Pages Fallback**: A pasta `/pages` não deve existir. O erro `_document` é evitado ao remover qualquer vestígio do Pages Router e usar App Router puro.
