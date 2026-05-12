@@ -964,7 +964,22 @@ const AttendanceRollCall = ({
         }
       }
 
-      const { error } = await supabase.from('attendance').upsert(records);
+      let { error } = await supabase.from('attendance').upsert(records);
+      
+      // Fallback: If columns like biblical_reference are missing, try saving without advanced fields
+      if (error && error.message.includes('column') && error.message.includes('not found')) {
+        console.warn('Database schema out of sync. Retrying basic save...');
+        const basicRecords = records.map(({ 
+          teacher_name, 
+          lesson_theme, 
+          biblical_reference, 
+          is_serving, 
+          ...basic 
+        }: any) => basic);
+        
+        const retry = await supabase.from('attendance').upsert(basicRecords);
+        error = retry.error;
+      }
       
       if (error) throw error;
 
@@ -3686,7 +3701,14 @@ function EBDAppContent() {
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <BookOpen className="size-12 text-primary" />
+              <Image 
+                src="https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png" 
+                alt="Logo" 
+                width={80}
+                height={80}
+                className="object-contain"
+                referrerPolicy="no-referrer"
+              />
             )}
           </div>
           <div className="absolute -bottom-2 -right-2">
@@ -3733,7 +3755,14 @@ function EBDAppContent() {
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <BookOpen className="size-10 text-primary" />
+              <Image 
+                src="https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png" 
+                alt="Logo" 
+                width={64}
+                height={64}
+                className="object-contain"
+                referrerPolicy="no-referrer"
+              />
             )}
           </motion.div>
           <div className="flex flex-col items-center gap-2">
@@ -4011,18 +4040,14 @@ function EBDAppContent() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="size-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden border border-primary/10 shadow-sm relative">
-              {churchLogo && !logoError ? (
                 <Image 
-                  src={churchLogo} 
+                  src={(churchLogo && !logoError) ? churchLogo : 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png'} 
                   alt="Logo" 
                   fill
                   className="object-contain p-1" 
                   referrerPolicy="no-referrer"
                   onError={() => setLogoError(true)}
                 />
-              ) : (
-                <BookOpen className="size-6 text-primary" />
-              )}
             </div>
             <div>
               <p className="text-xs text-slate-500 flex items-center gap-2">

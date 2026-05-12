@@ -102,17 +102,14 @@ export function LoginForm({ onLoginSuccess, onDemoMode }: { onLoginSuccess: (ses
       >
         <div className="text-center space-y-2">
           <div className="mx-auto size-24 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center mb-4 overflow-hidden shadow-xl shadow-primary/10 border border-slate-100 dark:border-slate-800 relative">
-            {!logoError ? (
-              <Image 
-                src={churchLogo} 
-                alt="Logo" 
-                fill
-                className="object-contain p-3" 
-                onError={() => setLogoError(true)}
-              />
-            ) : (
-              <BookOpen className="size-12 text-primary" />
-            )}
+            <Image 
+              src={!logoError ? churchLogo : 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png'} 
+              alt="Logo" 
+              fill
+              className="object-contain p-3" 
+              onError={() => setLogoError(true)}
+              referrerPolicy="no-referrer"
+            />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">{churchName}</h1>
           <p className="text-slate-500 dark:text-slate-400">
