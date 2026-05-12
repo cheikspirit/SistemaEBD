@@ -15,7 +15,7 @@ export function LoginForm({ onLoginSuccess, onDemoMode }: { onLoginSuccess: (ses
   const [view, setView] = React.useState<'login' | 'signup' | 'forgot'>('login');
   const [message, setMessage] = React.useState<string | null>(null);
   const [logoError, setLogoError] = React.useState(false);
-  const [churchLogo, setChurchLogo] = React.useState('https://picsum.photos/seed/ebd-digital/512/512');
+  const [churchLogo, setChurchLogo] = React.useState('https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png');
   const [churchName, setChurchName] = React.useState('EBD Digital');
 
   React.useEffect(() => {

@@ -14,8 +14,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <link rel="manifest" href="/manifest.json?v=2" />
-        <link rel="apple-touch-icon" href="https://picsum.photos/seed/ebd-digital/512/512" />
+        <link rel="manifest" href="/manifest.json?v=3" />
+        <link rel="apple-touch-icon" href="https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="EBD Digital" />

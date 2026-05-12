@@ -3238,9 +3238,17 @@ function EBDAppContent() {
   });
   const [churchLogo, setChurchLogo] = React.useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('ebd_church_logo') || 'https://picsum.photos/seed/ebd-digital/512/512';
+      const savedLogo = localStorage.getItem('ebd_church_logo');
+      const oldDefault = 'https://picsum.photos/seed/ebd-digital/512/512';
+      const newDefault = 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
+      
+      if (savedLogo === oldDefault || savedLogo === '/logo.png') {
+        localStorage.setItem('ebd_church_logo', newDefault);
+        return newDefault;
+      }
+      return savedLogo || newDefault;
     }
-    return 'https://picsum.photos/seed/ebd-digital/512/512';
+    return 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
   });
   const [logoError, setLogoError] = React.useState(false);
 
