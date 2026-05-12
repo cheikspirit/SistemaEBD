@@ -5,22 +5,21 @@ Este arquivo registra a configuração estável que resolveu os problemas de bui
 ## 1. Configuração de Build (Next.js 15.1.0+)
 Para que o build ocorra sem erros de `PageNotFoundError: /_document` ou `SWC bindings`:
 - **Versão do Next.js**: `^15.1.0` (estável)
-- **Output**: O modo standard (sem `export`) é preferível para evitar erros de `_document` em ambientes híbridos.
-- **Pages Fallback**: A pasta `/pages` não é mais necessária se o build standard estiver funcionando apenas com App Router.
+- **Output**: O modo standard (sem `export`) é mantido.
+- **SSR**: O componente principal do app deve ser importado via `next/dynamic` com `ssr: false` no `app/page.tsx` para evitar erros de renderização no servidor relacionados a bibliotecas de animação e window APIs.
+- **Pages Fallback**: A pasta `/pages` não deve existir. O erro `_document` é evitado ao remover qualquer vestígio do Pages Router e usar App Router puro.
 
 ## 2. Scripts de Build Estáveis (`package.json`)
 ```json
 "scripts": {
-  "build": "next build && rm -rf dist && cp -r out dist"
+  "build": "next build",
+  "start": "next start -p 3000"
 }
 ```
-*Nota: Na Vercel, o `next build` é o comando principal. A cópia para `dist` é para funcionamento interno do AI Studio.*
+*Nota: O build standard gera a pasta `.next` que é utilizada pelo `next start`.*
 
-## 3. Configurações de Transpilação (`next.config.mjs`)
-Bibliotecas de animação exigem transpilação explícita para evitar erros de renderização no servidor:
-```javascript
-transpilePackages: ['motion', 'framer-motion']
-```
+## 3. Configurações de Transpilação
+Bibliotecas de animação como `motion` (v12) geralmente não precisam de transpilação explícita no Next.js 15 se importadas via componentes dinâmicos com `ssr: false`.
 
 ## 4. Estado de Recuperação (Checkpoint 2026-04-22)
 As dependências no `package.json` devem manter o React na versão `19.0.0` e o Next na `15.1.0` (ou superior estável, evitando versões experimental/canary que quebram as bindings SWC).

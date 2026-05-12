@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  trailingSlash: true,
-  transpilePackages: ['motion', 'framer-motion'],
   images: {
     unoptimized: true,
     remotePatterns: [
