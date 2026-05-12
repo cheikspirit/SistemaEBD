@@ -5,8 +5,8 @@ Este arquivo registra a configuração estável que resolveu os problemas de bui
 ## 1. Configuração de Build (Next.js 15.1.0+)
 Para que o build ocorra sem erros de `PageNotFoundError: /_document` ou `SWC bindings`:
 - **Versão do Next.js**: `^15.1.0` (estável)
-- **Output**: Deve ser `export` no `next.config.mjs`.
-- **Pages Fallback**: Se o erro `_document` retornar, a pasta `/pages` com `_document.tsx`, `_app.tsx` e `404.tsx` deve ser reintroduzida como ponte de compatibilidade. Atualmente, o projeto está operando de forma estável **apenas com App Router** usando `app/not-found.tsx`.
+- **Output**: O modo standard (sem `export`) é preferível para evitar erros de `_document` em ambientes híbridos.
+- **Pages Fallback**: A pasta `/pages` não é mais necessária se o build standard estiver funcionando apenas com App Router.
 
 ## 2. Scripts de Build Estáveis (`package.json`)
 ```json
