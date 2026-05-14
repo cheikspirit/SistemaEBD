@@ -4,15 +4,21 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "EBD Digital",
   description: "Gestão de Escola Bíblica",
-  manifest: "/manifest.json?v=4",
+  manifest: "/manifest.json?v=5",
   icons: {
-    icon: "https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png",
-    apple: "https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png",
+    icon: [
+      { url: "https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png" },
+      { url: "https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   other: {
     "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
     "apple-mobile-web-app-title": "EBD Digital",
+    "mobile-web-app-capable": "yes",
   }
 };
 

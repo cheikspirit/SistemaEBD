@@ -22,8 +22,11 @@ Para que o build ocorra sem erros de `PageNotFoundError: /_document` ou vulnerab
 ## 3. Configurações de Transpilação
 Bibliotecas de animação como `motion` (v12) geralmente não precisam de transpilação explícita no Next.js 15 se importadas via componentes dinâmicos com `ssr: false`.
 
-## 4. Estado de Recuperação (Checkpoint 2026-04-22)
-As dependências no `package.json` devem manter o React na versão `19.0.0` e o Next na `15.1.0` (ou superior estável, evitando versões experimental/canary que quebram as bindings SWC).
+## 4. PWA e Mobile (Estabilizado)
+- **Manifest**: Localizado em `/public/manifest.json`.
+- **Modo**: `standalone` (abre sem barra de endereços).
+- **Ícones**: Configurados com a logo da pombinha (Cloudinary) em múltiplos tamanhos e propósitos (`any`, `maskable`).
+- **Cache Busting**: O manifest é referenciado no `layout.tsx` com query string (ex: `?v=5`) para forçar atualização em dispositivos móveis.
 
 ---
 **Assinado**: AI Coding Assistant
