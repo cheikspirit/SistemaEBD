@@ -2,10 +2,10 @@
 
 Este arquivo registra a configuração estável que resolveu os problemas de build na Vercel (Next.js 15+). **Não altere estas diretrizes sem testar o build exaustivamente.**
 
-## 1. Configuração de Build (Next.js 16.2.6+)
+## 1. Configuração de Build (Next.js 15.2.0+)
 Para que o build ocorra sem erros de `PageNotFoundError: /_document` ou vulnerabilidades:
 - **Versão do Node.js**: `24.x` (conforme configurado na Vercel).
-- **Versão do Next.js**: `15.1.8` (Versão segura que evita o erro de PageNotFoundError).
+- **Versão do Next.js**: `15.2.0` (Versão estável atualizada para corrigir vulnerabilidades).
 - **Output**: O modo standard (sem `export`) é mantido.
 - **SSR**: O componente principal do app deve ser importado via `next/dynamic` com `ssr: false` no `app/page.tsx` para garantir compatibilidade com bibliotecas de animação no lado do cliente.
 - **Pages Router**: A pasta `/pages` não deve existir. O projeto usa exclusivamente o **App Router**.
