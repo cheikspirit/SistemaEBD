@@ -3178,6 +3178,7 @@ const SettingsView = ({
 const ClassTimer = ({ startTime, onComplete }: { startTime: number, onComplete: () => void }) => {
   const [timeLeft, setTimeLeft] = React.useState(3000); // 50 min
   const [alarmPlayed, setAlarmPlayed] = React.useState(false);
+  const [finalAlarmPlayed, setFinalAlarmPlayed] = React.useState(false);
 
   React.useEffect(() => {
     const updateTimer = () => {
@@ -3187,7 +3188,13 @@ const ClassTimer = ({ startTime, onComplete }: { startTime: number, onComplete: 
 
       if (remaining <= 0) {
         setTimeLeft(0);
-        onComplete();
+        if (!finalAlarmPlayed) {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          audio.play().catch(e => console.log('Audio play blocked', e));
+          setFinalAlarmPlayed(true);
+        }
+        // Small delay before completing to let the alarm be heard
+        setTimeout(onComplete, 2000);
       } else {
         setTimeLeft(remaining);
         // Alarm at 40 minutes (10 minutes remaining)
@@ -3202,7 +3209,7 @@ const ClassTimer = ({ startTime, onComplete }: { startTime: number, onComplete: 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [startTime, alarmPlayed, onComplete]);
+  }, [startTime, alarmPlayed, finalAlarmPlayed, onComplete]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -3236,6 +3243,7 @@ const ClassTimer = ({ startTime, onComplete }: { startTime: number, onComplete: 
 
 function EBDAppContent() {
   const [session, setSession] = React.useState<any>(null);
+  console.log('EBDAppContent rendering...');
 
   const [userRole, setUserRole] = React.useState<UserRole>('ADMIN');
   const [userProfile, setUserProfile] = React.useState<Profile | null>(null);
