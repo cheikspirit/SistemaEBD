@@ -174,7 +174,8 @@ const Dashboard = ({
   birthdayAlertsEnabled,
   userRole,
   recentAttendance = [],
-  onLogout
+  onLogout,
+  onDeleteAttendance
 }: { 
   onNavigate: (view: View) => void;
   classes: Class[];
@@ -183,6 +184,7 @@ const Dashboard = ({
   userRole: UserRole;
   recentAttendance?: any[];
   onLogout: () => void;
+  onDeleteAttendance?: (classId: string, date: string, className: string) => void;
 }) => {
   const birthdaysThisWeek = React.useMemo(() => {
     if (!birthdayAlertsEnabled) return [];
@@ -440,22 +442,36 @@ const Dashboard = ({
               return map;
             }, new Map<string, any>()).values()
           )
-            .slice(0, 3)
+            .slice(0, 5)
             .map((record, idx) => (
-              <div key={record.id} className="flex items-center gap-3 bg-white dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+              <div key={record.id || `${record.class_id}-${record.date}`} className="flex items-center gap-3 bg-white dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                 <div className={cn(
-                  "size-10 rounded-lg flex items-center justify-center",
+                  "size-10 rounded-lg flex items-center justify-center shrink-0",
                   idx % 2 === 0 ? "bg-primary/10 text-primary" : "bg-primary-dark/10 text-primary-dark"
                 )}>
                   <CheckCircle className="size-5" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold">{record.classes?.name || 'Turma'}</p>
-                  <p className="text-[10px] text-slate-400">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold truncate">{record.classes?.name || 'Turma'}</p>
+                  <p className="text-[10px] text-slate-400 truncate">
                     {parseLocalDate(record.date)?.toLocaleDateString('pt-BR')} • Por {record.teacher_name || 'Professor'}
                   </p>
                 </div>
-                <ChevronRight className="size-4 text-slate-300" />
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onDeleteAttendance) {
+                        onDeleteAttendance(record.class_id, record.date, record.classes?.name || 'Turma');
+                      }
+                    }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+                    title="Excluir esta chamada"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                  <ChevronRight className="size-4 text-slate-300 shrink-0" />
+                </div>
               </div>
             ))
         )}
@@ -3295,7 +3311,7 @@ function EBDAppContent() {
   }, [isDemoMode]);
 
   const [birthdayAlertsEnabled, setBirthdayAlertsEnabled] = React.useState(true);
-  const [confirmDelete, setConfirmDelete] = React.useState<{ id: string, type: 'class' | 'student' | 'teacher' | 'category', name: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = React.useState<{ id: string, type: 'class' | 'student' | 'teacher' | 'category' | 'attendance', name: string } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<'connected' | 'error' | 'demo' | 'checking'>('checking');
 
@@ -3455,6 +3471,19 @@ function EBDAppContent() {
           if (error) throw error;
           await fetchData();
         }
+      } else if (type === 'attendance') {
+        const [classId, date] = id.split(':');
+        if (isDemoMode) {
+          setRecentAttendance(prev => prev.filter(a => !(a.class_id === classId && a.date === date)));
+        } else {
+          const { error } = await supabase
+            .from('attendance')
+            .delete()
+            .eq('class_id', classId)
+            .eq('date', date);
+          if (error) throw error;
+          await fetchData();
+        }
       }
       setConfirmDelete(null);
     } catch (err: any) {
@@ -3503,6 +3532,15 @@ function EBDAppContent() {
     const category = categories.find(c => c.id === id);
     if (!category) return;
     setConfirmDelete({ id, type: 'category', name: category.name });
+  };
+
+  const handleDeleteAttendance = (classId: string, date: string, className: string) => {
+    const formattedDate = parseLocalDate(date)?.toLocaleDateString('pt-BR') || date;
+    setConfirmDelete({
+      id: `${classId}:${date}`,
+      type: 'attendance',
+      name: `chamada de ${formattedDate} (${className})`
+    });
   };
 
   const fetchProfile = React.useCallback(async (user: any) => {
@@ -3823,6 +3861,7 @@ function EBDAppContent() {
           userRole={userRole}
           recentAttendance={recentAttendance}
           onLogout={handleLogout}
+          onDeleteAttendance={handleDeleteAttendance}
         />
       );
       case 'classes': return (
@@ -4030,7 +4069,7 @@ function EBDAppContent() {
         />
       );
       case 'user-management': return <UserManagementView onNavigate={setCurrentView} isDemoMode={isDemoMode} />;
-      default: return <Dashboard onNavigate={setCurrentView} classes={classes} students={students} birthdayAlertsEnabled={birthdayAlertsEnabled} userRole={userRole} recentAttendance={recentAttendance} onLogout={handleLogout} />;
+      default: return <Dashboard onNavigate={setCurrentView} classes={classes} students={students} birthdayAlertsEnabled={birthdayAlertsEnabled} userRole={userRole} recentAttendance={recentAttendance} onLogout={handleLogout} onDeleteAttendance={handleDeleteAttendance} />;
     }
   };
 
