@@ -980,7 +980,7 @@ const AttendanceRollCall = ({
         }
       }
 
-      let { error } = await supabase.from('attendance').upsert(records);
+      let { error } = await supabase.from('attendance').upsert(records, { onConflict: 'student_id,date' });
       
       // Fallback: If columns like biblical_reference are missing, try saving without advanced fields
       if (error && error.message.includes('column') && error.message.includes('not found')) {
@@ -993,7 +993,7 @@ const AttendanceRollCall = ({
           ...basic 
         }: any) => basic);
         
-        const retry = await supabase.from('attendance').upsert(basicRecords);
+        const retry = await supabase.from('attendance').upsert(basicRecords, { onConflict: 'student_id,date' });
         error = retry.error;
       }
       
@@ -1289,7 +1289,7 @@ const AttendanceRollCall = ({
         </div>
         <button 
           onClick={handleSave}
-          disabled={isSaving || (regularStudents.length === 0 && activeVisitors.length === 0)}
+          disabled={isSaving}
           className="w-full bg-primary text-slate-950 font-bold py-4 rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle className="size-5" />}
@@ -3312,6 +3312,16 @@ function EBDAppContent() {
 
   const [birthdayAlertsEnabled, setBirthdayAlertsEnabled] = React.useState(true);
   const [confirmDelete, setConfirmDelete] = React.useState<{ id: string, type: 'class' | 'student' | 'teacher' | 'category' | 'attendance', name: string } | null>(null);
+  const [customAlert, setCustomAlert] = React.useState<{ message: string; title?: string } | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.alert = (msg: string) => {
+        setCustomAlert({ message: msg });
+      };
+    }
+  }, []);
+
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<'connected' | 'error' | 'demo' | 'checking'>('checking');
 
@@ -4178,6 +4188,51 @@ function EBDAppContent() {
                   {isDeleting ? <Loader2 className="size-4 animate-spin" /> : 'Excluir'}
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Alert Modal for Sandbox/iFrame stability */}
+      <AnimatePresence>
+        {customAlert && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCustomAlert(null)}
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-100 dark:border-slate-800"
+            >
+              <div className="size-16 bg-primary/10 rounded-full flex items-center justify-center text-primary mx-auto mb-4">
+                {customAlert.message.toLowerCase().includes('sucesso') || 
+                 customAlert.message.toLowerCase().includes('finalizada') || 
+                 customAlert.message.toLowerCase().includes('registrados') ? (
+                  <CheckCircle className="size-8 text-emerald-500" />
+                ) : (
+                  <AlertCircle className="size-8 text-amber-500" />
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-center mb-2">
+                {customAlert.message.toLowerCase().includes('sucesso') || 
+                 customAlert.message.toLowerCase().includes('finalizada') || 
+                 customAlert.message.toLowerCase().includes('registrados') ? 'Sucesso!' : 'Atenção'}
+              </h3>
+              <p className="text-sm text-slate-500 text-center mb-6 whitespace-pre-line max-h-48 overflow-y-auto pr-1">
+                {customAlert.message}
+              </p>
+              <button 
+                onClick={() => setCustomAlert(null)}
+                className="w-full py-3 rounded-2xl font-bold text-sm bg-primary text-slate-950 shadow-lg shadow-primary/20 transition-all active:scale-95"
+              >
+                Entendi
+              </button>
             </motion.div>
           </div>
         )}
