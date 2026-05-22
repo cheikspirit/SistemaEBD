@@ -980,7 +980,17 @@ const AttendanceRollCall = ({
         }
       }
 
-      let { error } = await supabase.from('attendance').upsert(records, { onConflict: 'student_id,date' });
+      // Clear existing records for those students on that date to prevent duplication of entries
+      const studentIdsToClear = records.map(r => r.student_id);
+      if (studentIdsToClear.length > 0) {
+        await supabase
+          .from('attendance')
+          .delete()
+          .in('student_id', studentIdsToClear)
+          .eq('date', today);
+      }
+
+      let { error } = await supabase.from('attendance').insert(records);
       
       // Fallback: If columns like biblical_reference are missing, try saving without advanced fields
       if (error && error.message.includes('column') && error.message.includes('not found')) {
@@ -993,7 +1003,15 @@ const AttendanceRollCall = ({
           ...basic 
         }: any) => basic);
         
-        const retry = await supabase.from('attendance').upsert(basicRecords, { onConflict: 'student_id,date' });
+        if (studentIdsToClear.length > 0) {
+          await supabase
+            .from('attendance')
+            .delete()
+            .in('student_id', studentIdsToClear)
+            .eq('date', today);
+        }
+        
+        const retry = await supabase.from('attendance').insert(basicRecords);
         error = retry.error;
       }
       
