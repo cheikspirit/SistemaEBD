@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "EBD Digital",
   description: "Gestão de Escola Bíblica",
-  manifest: "/manifest.json?v=6",
+  manifest: "/manifest.json?v=7",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
