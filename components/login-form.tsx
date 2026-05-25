@@ -15,7 +15,7 @@ export function LoginForm({ onLoginSuccess, onDemoMode }: { onLoginSuccess: (ses
   const [view, setView] = React.useState<'login' | 'signup' | 'forgot'>('login');
   const [message, setMessage] = React.useState<string | null>(null);
   const [logoError, setLogoError] = React.useState(false);
-  const [churchLogo, setChurchLogo] = React.useState('https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png');
+  const [churchLogo, setChurchLogo] = React.useState('/icon-192.png');
   const [churchName, setChurchName] = React.useState('EBD Digital');
 
   React.useEffect(() => {
@@ -103,7 +103,7 @@ export function LoginForm({ onLoginSuccess, onDemoMode }: { onLoginSuccess: (ses
         <div className="text-center space-y-2">
           <div className="mx-auto size-24 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center mb-4 overflow-hidden shadow-xl shadow-primary/10 border border-slate-100 dark:border-slate-800 relative">
             <Image 
-              src={!logoError ? churchLogo : 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png'} 
+              src={!logoError ? churchLogo : '/icon-192.png'} 
               alt="Logo" 
               fill
               className="object-contain p-3" 
