@@ -939,6 +939,21 @@ const AttendanceRollCall = ({
     setIsSaving(true);
     try {
       const today = new Date().toLocaleDateString('sv-SE');
+      
+      let servingStudentIds: string[] = [];
+      const studentIds = recordsToSave.map(([id]) => id);
+      if (studentIds.length > 0) {
+        const { data: servingData } = await supabase
+          .from('attendance')
+          .select('student_id')
+          .eq('date', today)
+          .eq('is_serving', true)
+          .in('student_id', studentIds);
+        if (servingData) {
+          servingStudentIds = servingData.map(s => s.student_id);
+        }
+      }
+
       const records: any[] = recordsToSave.map(([studentId, data]) => ({
         student_id: studentId,
         class_id: selectedClassId,
@@ -948,7 +963,7 @@ const AttendanceRollCall = ({
         teacher_name: selectedTeacher,
         lesson_theme: lessonTheme.trim(),
         biblical_reference: biblicalReference.trim() || null,
-        is_serving: false
+        is_serving: servingStudentIds.includes(studentId)
       }));
 
       // Auto-mark teacher presence as "Serving" in their original class
