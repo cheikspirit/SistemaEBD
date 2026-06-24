@@ -3359,12 +3359,14 @@ function EBDAppContent() {
   const [connectionStatus, setConnectionStatus] = React.useState<'connected' | 'error' | 'demo' | 'checking'>('checking');
 
   const hasKeys = React.useMemo(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const sanitize = (val: string | undefined) => val ? val.trim().replace(/^["']|["']$/g, '') : '';
+    const url = sanitize(process.env.NEXT_PUBLIC_SUPABASE_URL);
+    const key = sanitize(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     return !!(url && key && 
            !url.includes('placeholder') && 
            !url.includes('your-project-id') &&
-           url !== 'https://.supabase.co');
+           url !== 'https://.supabase.co' &&
+           url.startsWith('https://'));
   }, []);
 
   // Defensive timeout to prevent infinite loading
@@ -3399,6 +3401,11 @@ function EBDAppContent() {
 
   React.useEffect(() => {
     const checkConnection = async () => {
+      // Guard: do not connect or check connection if there is no session and we are not in demo mode
+      if (!session && !isDemoMode) {
+        return;
+      }
+
       console.log('Checking connection status...', { hasKeys, isDemoMode });
       if (!hasKeys) {
         setConnectionStatus('demo');
@@ -3421,7 +3428,7 @@ function EBDAppContent() {
     };
 
     checkConnection();
-  }, [hasKeys, isDemoMode]);
+  }, [hasKeys, isDemoMode, session]);
 
   React.useEffect(() => {
     localStorage.setItem('ebd_church_name', churchName);
