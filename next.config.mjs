@@ -6,7 +6,7 @@ const nextConfig = async (phase) => {
 
   return {
     output: isDev ? undefined : 'export',
-    distDir: isDev ? '.next_dev' : '.next',
+    distDir: isDev ? '.next_dev' : 'dist',
     reactStrictMode: false,
     transpilePackages: ['motion'],
     images: {
