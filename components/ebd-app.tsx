@@ -3317,9 +3317,10 @@ function EBDAppContent() {
       if (typeof window !== 'undefined') {
         const savedLogo = localStorage.getItem('ebd_church_logo');
         const oldDefault = 'https://picsum.photos/seed/ebd-digital/512/512';
-        const newDefault = 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
+        const newDefault = 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1774641631/logo_ICEPA_100_x_100_px_qucnew.png';
+        const brokenDefault = 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
         
-        if (savedLogo === oldDefault || savedLogo === '/logo.png') {
+        if (savedLogo === oldDefault || savedLogo === '/logo.png' || savedLogo === brokenDefault) {
           try { localStorage.setItem('ebd_church_logo', newDefault); } catch (_) {}
           return newDefault;
         }
@@ -3328,7 +3329,7 @@ function EBDAppContent() {
     } catch (e) {
       console.warn('localStorage access failed:', e);
     }
-    return 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
+    return 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1774641631/logo_ICEPA_100_x_100_px_qucnew.png';
   });
   const [logoError, setLogoError] = React.useState(false);
 
@@ -3810,7 +3811,7 @@ function EBDAppContent() {
               />
             ) : (
               <Image 
-                src="https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png" 
+                src="https://res.cloudinary.com/dryqi1mtn/image/upload/v1774641631/logo_ICEPA_100_x_100_px_qucnew.png" 
                 alt="Logo" 
                 width={80}
                 height={80}
@@ -3864,7 +3865,7 @@ function EBDAppContent() {
               />
             ) : (
               <Image 
-                src="https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png" 
+                src="https://res.cloudinary.com/dryqi1mtn/image/upload/v1774641631/logo_ICEPA_100_x_100_px_qucnew.png" 
                 alt="Logo" 
                 width={64}
                 height={64}
@@ -4150,7 +4151,7 @@ function EBDAppContent() {
           <div className="flex items-center gap-3">
             <div className="size-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden border border-primary/10 shadow-sm relative">
                 <Image 
-                  src={(churchLogo && !logoError) ? churchLogo : 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png'} 
+                  src={(churchLogo && !logoError) ? churchLogo : 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1774641631/logo_ICEPA_100_x_100_px_qucnew.png'} 
                   alt="Logo" 
                   fill
                   className="object-contain p-1" 
