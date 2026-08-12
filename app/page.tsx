@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import dynamic from 'next/dynamic';
 
 const EBDApp = dynamic(() => import('@/components/ebd-app'), {
@@ -8,7 +7,7 @@ const EBDApp = dynamic(() => import('@/components/ebd-app'), {
   loading: () => (
     <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
       <div className="flex flex-col items-center gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         <p className="font-mono text-sm animate-pulse">Carregando Plataforma EBD Digital...</p>
       </div>
     </div>
@@ -16,18 +15,11 @@ const EBDApp = dynamic(() => import('@/components/ebd-app'), {
 });
 
 export default function Home() {
-  const [debug, setDebug] = React.useState(false);
-
-  React.useEffect(() => {
-    console.log('Home Component Mounted');
-    const timer = setTimeout(() => setDebug(true), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <main className="min-h-screen">
       <EBDApp />
-      {debug && <div className="sr-only">Debug: Home is active</div>}
     </main>
   );
 }
+
+

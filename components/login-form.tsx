@@ -19,10 +19,16 @@ export function LoginForm({ onLoginSuccess, onDemoMode }: { onLoginSuccess: (ses
   const [churchName, setChurchName] = React.useState('EBD Digital');
 
   React.useEffect(() => {
-    const savedLogo = localStorage.getItem('ebd_church_logo');
-    if (savedLogo) setChurchLogo(savedLogo);
-    const savedName = localStorage.getItem('ebd_church_name');
-    if (savedName) setChurchName(savedName);
+    try {
+      if (typeof window !== 'undefined') {
+        const savedLogo = localStorage.getItem('ebd_church_logo');
+        if (savedLogo) setChurchLogo(savedLogo);
+        const savedName = localStorage.getItem('ebd_church_name');
+        if (savedName) setChurchName(savedName);
+      }
+    } catch (e) {
+      console.warn('localStorage not accessible in iframe:', e);
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {

@@ -3303,22 +3303,30 @@ function EBDAppContent() {
   const [teachers, setTeachers] = React.useState<Teacher[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [churchName, setChurchName] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('ebd_church_name') || 'Admin EBD';
+    try {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('ebd_church_name') || 'Admin EBD';
+      }
+    } catch (e) {
+      console.warn('localStorage access failed:', e);
     }
     return 'Admin EBD';
   });
   const [churchLogo, setChurchLogo] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedLogo = localStorage.getItem('ebd_church_logo');
-      const oldDefault = 'https://picsum.photos/seed/ebd-digital/512/512';
-      const newDefault = 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
-      
-      if (savedLogo === oldDefault || savedLogo === '/logo.png') {
-        localStorage.setItem('ebd_church_logo', newDefault);
-        return newDefault;
+    try {
+      if (typeof window !== 'undefined') {
+        const savedLogo = localStorage.getItem('ebd_church_logo');
+        const oldDefault = 'https://picsum.photos/seed/ebd-digital/512/512';
+        const newDefault = 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
+        
+        if (savedLogo === oldDefault || savedLogo === '/logo.png') {
+          try { localStorage.setItem('ebd_church_logo', newDefault); } catch (_) {}
+          return newDefault;
+        }
+        return savedLogo || newDefault;
       }
-      return savedLogo || newDefault;
+    } catch (e) {
+      console.warn('localStorage access failed:', e);
     }
     return 'https://res.cloudinary.com/dryqi1mtn/image/upload/v1715494632/logo_ebd_pomba_f7z7z8.png';
   });
@@ -3385,17 +3393,21 @@ function EBDAppContent() {
   }, [isAuthLoading, isLoading, session, isDemoMode]);
 
   React.useEffect(() => {
-    const savedStartTime = localStorage.getItem('ebd_session_start_time');
-    if (savedStartTime) {
-      const startTime = parseInt(savedStartTime, 10);
-      const now = Date.now();
-      const elapsed = (now - startTime) / 1000;
-      if (elapsed < 3000) { // 50 minutes
-        setSessionStartTime(startTime);
-        setIsTimerActive(true);
-      } else {
-        localStorage.removeItem('ebd_session_start_time');
+    try {
+      const savedStartTime = localStorage.getItem('ebd_session_start_time');
+      if (savedStartTime) {
+        const startTime = parseInt(savedStartTime, 10);
+        const now = Date.now();
+        const elapsed = (now - startTime) / 1000;
+        if (elapsed < 3000) { // 50 minutes
+          setSessionStartTime(startTime);
+          setIsTimerActive(true);
+        } else {
+          try { localStorage.removeItem('ebd_session_start_time'); } catch (_) {}
+        }
       }
+    } catch (e) {
+      console.warn('localStorage access failed:', e);
     }
   }, []);
 
@@ -3431,24 +3443,24 @@ function EBDAppContent() {
   }, [hasKeys, isDemoMode, session]);
 
   React.useEffect(() => {
-    localStorage.setItem('ebd_church_name', churchName);
+    try { localStorage.setItem('ebd_church_name', churchName); } catch (_) {}
   }, [churchName]);
 
   React.useEffect(() => {
-    localStorage.setItem('ebd_church_logo', churchLogo);
+    try { localStorage.setItem('ebd_church_logo', churchLogo); } catch (_) {}
   }, [churchLogo]);
 
   const startClassTimer = () => {
     const now = Date.now();
     setSessionStartTime(now);
     setIsTimerActive(true);
-    localStorage.setItem('ebd_session_start_time', now.toString());
+    try { localStorage.setItem('ebd_session_start_time', now.toString()); } catch (_) {}
   };
 
   const stopClassTimer = () => {
     setSessionStartTime(null);
     setIsTimerActive(false);
-    localStorage.removeItem('ebd_session_start_time');
+    try { localStorage.removeItem('ebd_session_start_time'); } catch (_) {}
   };
 
   const handleDeleteClass = (id: string) => {
