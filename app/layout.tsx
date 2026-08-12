@@ -4,10 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "EBD Digital",
   description: "Gestão de Escola Bíblica Dominical",
-  manifest: "/manifest.json?v=10",
+  manifest: "/manifest.json?v=11",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "EBD Digital",
   },
   icons: {
@@ -40,19 +40,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <head>
-        <link rel="manifest" href="/manifest.json?v=10" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="EBD Digital" />
-        <meta name="mobile-web-app-capable" content="yes" />
-      </head>
       <body>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator && typeof window !== 'undefined') {
+                if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js').catch(function() {});
+                  });
+                }
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
