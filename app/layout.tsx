@@ -34,6 +34,15 @@ export default function RootLayout({
                   );
                 });
               }
+              window.addEventListener('error', function(e) {
+                if (e && e.message && e.message.indexOf('Loading chunk') !== -1) {
+                  var lastReload = sessionStorage.getItem('chunk_reload');
+                  if (!lastReload || Date.now() - parseInt(lastReload, 10) > 10000) {
+                    sessionStorage.setItem('chunk_reload', Date.now().toString());
+                    window.location.reload();
+                  }
+                }
+              });
             `,
           }}
         />

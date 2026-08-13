@@ -1,7 +1,21 @@
 @import "tailwindcss";
-/* @import "tw-animate-css"; */
 
 @theme {
   --color-primary: #3b82f6;
   --color-primary-dark: #2563eb;
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-in {
+  animation: fadeInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
