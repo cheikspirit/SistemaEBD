@@ -4,6 +4,18 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'EBD Digital',
   description: 'Plataforma para Gestão da Escola Bíblica Dominical',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png?v=11', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png?v=11', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/icon-192.png?v=11',
+    apple: [
+      { url: '/apple-touch-icon.png?v=11', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/manifest.json?v=11',
 };
 
 export default function RootLayout({
@@ -14,11 +26,15 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <link rel="manifest" href="/manifest.json?v=10" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+        <link rel="manifest" href="/manifest.json?v=11" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=11" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=11" />
+        <link rel="shortcut icon" href="/icon-192.png?v=11" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=11" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=11" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png?v=11" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png?v=11" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="EBD Digital" />
